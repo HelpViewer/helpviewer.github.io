@@ -1,0 +1,78 @@
+name: Deploy to Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_name:
+        description: 'Release name'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Set up environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip curl jq
+
+    - name: Download package.zip from HelpViewer/HelpViewer
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        release_name="${{ github.event.inputs.release_name }}"
+        api_url="https://api.github.com/repos/HelpViewer/HelpViewer/releases"
+        asset_url=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url" \
+          | jq -r '.[] | select(.name == "'"$release_name"'") | .assets[] | select(.name == "package.zip") | .url')
+
+        if [ -z "$asset_url" ]; then
+          echo "Asset package.zip not found for release $release_name"
+          exit 1
+        fi
+
+        curl -L -H "Accept: application/octet-stream" \
+             -H "Authorization: token $GITHUB_TOKEN" \
+             "$asset_url" -o package.zip
+
+    - name: Unzip package.zip
+      run: |
+        unzip -o package.zip
+
+    - name: Create hlp/ directory
+      run: mkdir -p hlp
+
+    - name: Download all zip assets from HelpViewer/helpHello
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        release_name="${{ github.event.inputs.release_name }}"
+        api_url="https://api.github.com/repos/HelpViewer/helpHello/releases"
+        releases=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
+
+        mkdir -p hlp
+
+        echo "$releases" | jq -c '.[]' | while read release; do
+          echo "$release" | jq -c '.assets[] | select(.name | endswith(".zip"))' | while read asset; do
+            name=$(echo "$asset" | jq -r '.name')
+            url=$(echo "$asset" | jq -r '.url')
+            echo "Downloading $name..."
+            curl -L -H "Accept: application/octet-stream" \
+                 -H "Authorization: token $GITHUB_TOKEN" \
+                 "$url" -o "hlp/$name"
+          done
+        done
+
+    - name: Commit and push changes
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git add .
+        git commit -m "Manual deploy from release ${{ github.event.inputs.release_name }}" || echo "Nothing to commit"
+        git push
