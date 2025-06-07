@@ -44,6 +44,7 @@ jobs:
     - name: Unzip package.zip
       run: |
         unzip -o package.zip
+        rm -f package.zip
 
     - name: Create hlp/ directory
       run: mkdir -p hlp
