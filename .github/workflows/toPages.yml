@@ -54,12 +54,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         release_name="${{ github.event.inputs.release_name }}"
-        api_url="https://api.github.com/repos/HelpViewer/helpHello/releases"
-        releases=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
+        api_url="https://api.github.com/repos/HelpViewer/helpHello/releases/tags/$tag"
+        release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
 
         mkdir -p hlp
 
-        echo "$releases" | jq -c '.[]' | while read release; do
           echo "$release" | jq -c '.assets[] | select(.name | endswith(".zip"))' | while read asset; do
             name=$(echo "$asset" | jq -r '.name')
             url=$(echo "$asset" | jq -r '.url')
@@ -68,7 +67,6 @@ jobs:
                  -H "Authorization: token $GITHUB_TOKEN" \
                  "$url" -o "hlp/$name"
           done
-        done
 
     - name: Commit and push changes
       run: |
