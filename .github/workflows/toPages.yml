@@ -46,18 +46,21 @@ jobs:
         unzip -o package.zip
         rm -f package.zip
 
-    - name: Create hlp/ directory
-      run: mkdir -p hlp
+    - name: Create hlp/ directories
+      run: |
+        mkdir -p hlp
+        mkdir -p hlp-user
 
     - name: Download all zip assets from HelpViewer/helpHello
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         release_name="${{ github.event.inputs.release_name }}"
-        api_url="https://api.github.com/repos/HelpViewer/helpHello/releases/tags/$release_name"
-        release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
 
-        mkdir -p hlp
+        _reponame=helpHello
+        api_url="https://api.github.com/repos/HelpViewer/$_reponame/releases/tags/$release_name"
+        release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
+        hlpdir=hlp
 
           echo "$release" | jq -c '.assets[] | select(.name | endswith(".zip"))' | while read asset; do
             name=$(echo "$asset" | jq -r '.name')
@@ -65,7 +68,21 @@ jobs:
             echo "Downloading $name..."
             curl -L -H "Accept: application/octet-stream" \
                  -H "Authorization: token $GITHUB_TOKEN" \
-                 "$url" -o "hlp/$name"
+                 "$url" -o "$hlpdir/$name"
+          done
+
+        _reponame=helpUser
+        api_url="https://api.github.com/repos/HelpViewer/$_reponame/releases/latest"
+        release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
+        hlpdir=hlp-user
+
+          echo "$release" | jq -c '.assets[] | select(.name | endswith(".zip"))' | while read asset; do
+            name=$(echo "$asset" | jq -r '.name')
+            url=$(echo "$asset" | jq -r '.url')
+            echo "Downloading $name..."
+            curl -L -H "Accept: application/octet-stream" \
+                 -H "Authorization: token $GITHUB_TOKEN" \
+                 "$url" -o "$hlpdir/$name"
           done
 
     - name: Commit and push changes
