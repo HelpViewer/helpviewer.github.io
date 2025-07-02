@@ -50,6 +50,7 @@ jobs:
       run: |
         mkdir -p hlp
         mkdir -p hlp-user
+        mkdir -p hlp-aguide
 
     - name: Download all zip assets from HelpViewer/helpHello
       env:
@@ -75,6 +76,20 @@ jobs:
         api_url="https://api.github.com/repos/HelpViewer/$_reponame/releases/latest"
         release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
         hlpdir=hlp-user
+
+          echo "$release" | jq -c '.assets[] | select(.name | endswith(".zip"))' | while read asset; do
+            name=$(echo "$asset" | jq -r '.name')
+            url=$(echo "$asset" | jq -r '.url')
+            echo "Downloading $name..."
+            curl -L -H "Accept: application/octet-stream" \
+                 -H "Authorization: token $GITHUB_TOKEN" \
+                 "$url" -o "$hlpdir/$name"
+          done
+
+        _reponame=helpAuthorsGuide
+        api_url="https://api.github.com/repos/HelpViewer/$_reponame/releases/latest"
+        release=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$api_url")
+        hlpdir=hlp-aguide
 
           echo "$release" | jq -c '.assets[] | select(.name | endswith(".zip"))' | while read asset; do
             name=$(echo "$asset" | jq -r '.name')
