@@ -1,5 +1,5 @@
 const CACHE_NAME = 'helpviewer-cache-v1';
-const CACHE_FILES = [ '/faviconPWA.png','/manifest.webmanifest','/hvdata/jszip.min.js','/hvdata/data.zip','/hvdata/LICENSE-jszip.md','/hvdata/appmain.js','/index.html','/favicon.png','/robots.txt' ];
+const CACHE_FILES = [ '/manifest.webmanifest','/index.html','/hvdata/jszip.min.js','/hvdata/appmain.js','/hvdata/LICENSE-jszip.md','/hvdata/data.zip','/faviconPWA.png','/favicon.png' ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -29,14 +29,4 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request)
       .then((response) => response || fetch(event.request))
   );
-});
-
-self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'clearCache') {
-    caches.keys().then(keyList => {
-      return Promise.all(
-        keyList.map(name => caches.delete(name))
-      );
-    });
-  }
 });
