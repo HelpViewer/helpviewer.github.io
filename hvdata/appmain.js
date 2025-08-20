@@ -1,38 +1,153 @@
+const DEBUG_MODE = false;
+const DEBUG_MODE_RENDERER = DEBUG_MODE;
+const LOG_MINIMIZE_OBJECT = true;
+const LOG_MINIMIZE_DATE_ISO = false;
+
+const $ = (name) => document.getElementById(name);
+const $O = (selector, parent = document) => parent?.querySelector(selector);
+const $A = (selector, parent = document) => parent?.querySelectorAll(selector);
+
+function newUID(length = 8) {
+  var str = '';
+
+  while (str.length <= length)
+    str += Math.random().toString(36).slice(2);
+
+  str = str.slice(0, length);
+  //log(`newUID of length ${length} emitted: ${str}`);
+
+  return str;
+}
+
+const log = !DEBUG_MODE ? 
+function log() {} : 
+function log(msg, ...dataI) {
+  if (!msg) return;
+
+  var severity = msg[0];
+  const hasSeverity = msg[1] == ' ';
+
+  if (hasSeverity) {
+    msg = msg.substring(2);
+  } else {
+    severity = undefined;
+  }
+
+  const data = [msg];
+
+  if (LOG_MINIMIZE_OBJECT && severity?.toUpperCase() != 'E') {
+    dataI.forEach((x, i) => {
+      if (typeof x === 'object') {
+        //dataI[i] = JSON.parse(JSON.stringify(x)); // unfortunately skips undefined members!
+        const clean = Object.create(null);
+        Object.assign(clean, dataI[i]);
+        clean['__className'] = x.constructor.name;
+        dataI[i] = clean;
+        for (const [key, value] of Object.entries(dataI[i])) {
+          if (value instanceof Date) {
+            clean[key] = LOG_MINIMIZE_DATE_ISO ? value.toISOString() : value.toString();
+          } else {
+            clean[key] = value;
+          }
+        }
+      }
+    });
+  }
+
+  if (dataI.length > 0)
+    data.push(...dataI);
+
+  switch (severity?.toUpperCase()) {
+    case 'W':
+      console.warn(...data);
+      break;
+
+    case 'E':
+      console.error(...data);
+      break;
+  
+    default:
+      if (hasSeverity) {
+        msg = `${severity} ${msg}`;
+        data[0] = msg;
+      }
+      console.log(...data);
+      break;
+  }
+}
+
 const PAR_NAME_DOC = 'd'; // Help file path
 
 const id_JSAppRun = 'appRun';
 const FILENAME_ZIP_ON_USER_INPUT = '!.zip';
+const FILENAME_DIR_LISTING = '__dir.lst';
 
 function _T(id) {
   return id;
 }
 
-function appendField(target, id, defaultV = '', type = 'text') {
-  target.innerHTML += 
+const FormFieldType = {
+  TEXT: 'text',
+  CHECKBOX: 'checkbox',
+  FILE: 'file',
+};
+
+function appendField(target, id, defaultV = '', type = FormFieldType.TEXT) {
+  if (defaultV && type == FormFieldType.CHECKBOX)
+    defaultV = `checked`;
+  else if (defaultV)
+    defaultV = `value="${defaultV}"`;
+  else
+    defaultV = '';
+
+  target.insertAdjacentHTML('beforeend',
   `<div class="form-row">
-      <label for="${id}">${_T(id)}</label>
-      <input type="${type}" id="${id}" value="${defaultV}" />
-  </div>`;
+      <label for="${id}" id="${id}-label">${_T(id)}</label>
+      <input type="${type}" id="${id}" ${defaultV} />
+  </div>`);
 }
 
-function formCorsHelpFilesUpload()
+function appendFieldComboBox(target, id) {
+  target.insertAdjacentHTML('beforeend',
+  `<div class="form-row">
+      <label for="${id}" id="${id}-label">${_T(id)}</label>
+      <select id="${id}" />
+  </div>`);
+}
+
+function appendComboBoxItems(combobox, items, defaultV) {
+  if (!combobox) return;
+  items?.forEach((txt, i) => {
+    let opt = new Option(txt, i);
+    if (defaultV == txt || defaultV == i)
+      opt.selected = true;
+    combobox.add(opt);
+  });
+}
+
+function formCorsHelpFilesUpload(fieldHelpLangTitle = 'Help-(language).zip', fieldHvDataTitle = 'data.zip', formName = 'form', formInName = 'formIn')
 {
-  const formO = document.getElementById('formIn');
-  const fieldHvData = 'data.zip';
-  const fieldHelpLang = 'Help-(language).zip';
+  const formO = $(formInName);
+  const fieldHvData = fieldHvDataTitle;
+  const fieldHelpLang = fieldHelpLangTitle;
   //const fieldHelpBase = 'Help-.zip';
-  const typeFile = 'file';
+  const typeFile = FormFieldType.FILE;
 
   appendField(formO, fieldHvData, '', typeFile);
   appendField(formO, fieldHelpLang, '', typeFile);
   //appendField(formO, fieldHelpBase, '', typeFile);
+  
+  const button = document.createElement("button");
+  button.type = "submit";
+  button.textContent = "Send";
+  formO.appendChild(button);
 
-  const formM = document.getElementById('form');
+  const formM = $(formName);
   formM.addEventListener("submit", function(e) {
     e.preventDefault();
 
-    const hvData = document.getElementById(fieldHvData);
-    const helpLang = document.getElementById(fieldHelpLang);
+    const hvData = $(fieldHvData);
+    const helpLang = $(fieldHelpLang);
 
     if (!hvData?.files?.length || !helpLang?.files?.length)
       return;
@@ -40,15 +155,15 @@ function formCorsHelpFilesUpload()
     const fileHvData = hvData.files[0];
     const fileHelpLang = helpLang.files[0];
 
-    // var fileHelpBase = document.getElementById(fieldHelpBase);
+    // var fileHelpBase = $(fieldHelpBase);
 
     // if (fileHelpBase?.files?.length)
     //   fileHelpBase = fileHelpBase[0];
     // else
     //   fileHelpBase = null;
 
-    document.getElementById(id_JSAppRun)?.remove();
-    st = _Storage.add(STO_HELP, FILENAME_ZIP_ON_USER_INPUT, fileHelpLang).then(obsah => {
+    $(id_JSAppRun)?.remove();
+    var st = _Storage.add(STO_HELP, FILENAME_ZIP_ON_USER_INPUT, fileHelpLang).then(obsah => {
       main(fileHvData);
       const url = new URL(window.location.href);
       url.searchParams.set(PAR_NAME_DOC, FILENAME_ZIP_ON_USER_INPUT);
@@ -66,8 +181,8 @@ const STOF_B64 = 'base64';
 const DATA_FILE_PATH_BASE = 'hvdata/data';
 
 const STORAGE_ENGINES = {
-  '.zip': async (path) => newStorageZip(path),
-  '/': async (path) => newStorageDir(path),
+  '.zip': async (path) => await new StorageZip().init(path),
+  '/': async (path) => await new StorageDir().init(path),
 };
 
 var _Storage = (() => {
@@ -113,21 +228,35 @@ var _Storage = (() => {
   };
 })();
 
-async function newStorageZip(path) {
-  var storageO = await init(path);
+/**
+ * @interface
+ */
+class IStorage {
+  async init(path) {}
+  async search(filePath, format) {}
+  async getSubdirs(parentPath) {}
+  async searchImage(filePath) {}
+}
 
-  async function init(path) {
-    return await ZIPHelpers.loadZipFromUrl(path);
+class StorageZip extends IStorage {
+  constructor() {
+    super();
+    this.storageO = null;
+  }
+  
+  async init(path) {
+    this.storageO = await ZIPHelpers.loadZipFromUrl(path);
+    return this;
   }
 
-  async function search(filePath, format = STOF_TEXT) {
-    return await ZIPHelpers.searchArchiveForFile(filePath, storageO, format);
+  async search(filePath, format = STOF_TEXT) {
+    return await ZIPHelpers.searchArchiveForFile(filePath, this.storageO, format);
   }
 
-  async function getSubdirs(parentPath) {
+  async getSubdirs(parentPath) {
     const subdirs = new Set();
 
-    storageO?.forEach((relativePath, file) => {
+    this.storageO?.forEach((relativePath, file) => {
       if (relativePath.startsWith(parentPath) && relativePath !== parentPath) 
       {
         const subPath = relativePath.slice(parentPath.length);
@@ -144,28 +273,37 @@ async function newStorageZip(path) {
     return [...subdirs];
   }
 
-  async function searchImage(filePath) {
-    const content = await search(filePath, STOF_B64);
+  async searchImage(filePath) {
+    const content = await this.search(filePath, STOF_B64);
     if (!content) return null;
     var mimeType = 'image/' + filePath.split('.').pop().toLowerCase();
     return `data:${mimeType};base64,${content}`;
   }
-
-  return {
-    search,
-    getSubdirs,
-    searchImage
-  };
 }
 
-async function newStorageDir(path) {
-  var storageO = await init(path);
+function toText(ab) {
+  if (!ab) return '';
+  if (typeof ab === 'string') return ab;
+  if (ab instanceof String) return ab.valueOf();
+  
+  const decoder = new TextDecoder('utf-8');
+  const text = decoder.decode(ab);
+  return text;
+}
 
-  async function init(path) {
-    return path.replace(/\/$/, '');
+class StorageDir extends IStorage {
+  constructor() {
+    super();
+    this.storageO = null;
   }
-  async function search(filePath, format = STOF_TEXT) {
-    var fpath = `${storageO}/${filePath}`;
+  
+  async init(path) {
+    this.storageO = path.replace(/\/$/, '');
+    return this;
+  }
+
+  async search(filePath, format = STOF_TEXT) {
+    var fpath = `${this.storageO}/${filePath}`;
     const doubleSlash = '//';
     const doubleSlashIndexLast = fpath.lastIndexOf(doubleSlash);
     const doubleSlashIndex = fpath.indexOf(doubleSlash);
@@ -176,9 +314,12 @@ async function newStorageDir(path) {
         replacement = '/';
 
       fpath = fpath.slice(0, doubleSlashIndexLast) + replacement + fpath.slice(doubleSlashIndexLast + 2);
+    } else {
+      if (!fpath.startsWith('http') && !fpath.startsWith('ftp'))
+        fpath = fpath.replace(doubleSlash, '/');
     }
 
-    const response = await fetchDataOrEmpty(fpath);
+    const response = await this.fetchDataOrEmpty(fpath);
 
     switch (format) {
       case STOF_B64:
@@ -196,16 +337,10 @@ async function newStorageDir(path) {
     }
   }
 
-  function toText(ab) {
-    const decoder = new TextDecoder("utf-8");
-    const text = decoder.decode(ab);
-    return text;
-  }
-
-  async function getSubdirs(parentPath) {
-    const list = search(`${storageO}/${parentPath}/__dir.lst`, format = STOF_TEXT);
-    const text = toText(list);
-    text = text.trim().replace(/\r\n/g, "\n").split('\n');
+  async getSubdirs(parentPath) {
+    const list = await this.search(`${parentPath}/${FILENAME_DIR_LISTING}`, STOF_TEXT);
+    var text = toText(list);
+    text = rowsToArray(text.trim());
 
     const subdirs = new Set();
     text?.forEach((line, index) => {
@@ -215,7 +350,7 @@ async function newStorageDir(path) {
     return [...subdirs];
   }
 
-  async function fetchDataOrEmpty(url) {
+  async fetchDataOrEmpty(url) {
     try {
       const response = await fetchData(url);
       return response;
@@ -224,19 +359,13 @@ async function newStorageDir(path) {
     }
   }
 
-  async function searchImage(filePath) {
-    const fpath = `${storageO}/${filePath}`;
-    const response = await fetchDataOrEmpty(fpath);
+  async searchImage(filePath) {
+    const fpath = `${this.storageO}/${filePath}`;
+    const response = await this.fetchDataOrEmpty(fpath);
     if (response.byteLength == 0)
       return null;
     return fpath;
   }
-
-  return {
-    search,
-    getSubdirs,
-    searchImage
-  };
 }
 
 async function main(baseDataStream = null) {
@@ -298,7 +427,7 @@ const ZIPHelpers = (() => {
 })();
 
 function appendCSS(id, content) {
-  //if (document.getElementById(id)) return;
+  //if ($(id)) return;
   const style = document.createElement('style');
   style.textContent = content;
   style.id = id;
@@ -306,12 +435,17 @@ function appendCSS(id, content) {
 }
 
 function appendJavaScript(id, content, parentO) {
-  if (document.getElementById(id)) return;
+  if ($(id)) return;
   const script = document.createElement('script');
   script.type = 'text/javascript';
   script.textContent = content;
   script.id = id;
   parentO.appendChild(script);
+}
+
+function rowsToArray(t) {
+  if (!t) return;
+  return t.replace(/\r\n|\r/g, '\n').split('\n');
 }
 
 main();
