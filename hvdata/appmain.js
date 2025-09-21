@@ -1,5 +1,6 @@
 "use strict";
 const DEBUG_MODE = false;
+const global1stState = DEBUG_MODE? new Set(Object.getOwnPropertyNames(globalThis)) : new Set();
 const DEBUG_MODE_RENDERER = DEBUG_MODE;
 const LOG_MINIMIZE_OBJECT = true;
 const LOG_MINIMIZE_DATE_ISO = false;
@@ -221,11 +222,19 @@ var _Storage = (() => {
     return await storagesC.get(key).searchImage(filePath);
   }
 
+  function getKey(key) {
+    if (!storagesC.has(key))
+      return null;
+
+    return storagesC.get(key);
+  }
+
   return {
     add,
     search,
     getSubdirs,
-    searchImage
+    searchImage,
+    getKey
   };
 })();
 
@@ -445,7 +454,7 @@ function appendJavaScript(id, content, parentO) {
 }
 
 function rowsToArray(t) {
-  if (!t) return;
+  if (!t) return [];
   return t.replace(/\r\n|\r/g, '\n').split('\n');
 }
 
