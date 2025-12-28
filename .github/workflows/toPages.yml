@@ -45,6 +45,7 @@ jobs:
       run: |
         unzip -o package.zip
         rm -f package.zip
+        touch .nojekyll
 
     - name: Create hlp/ directories
       run: |
