@@ -7,6 +7,15 @@ const $ = (name) => document.getElementById(name);
 const $O = (selector, parent = document) => parent?.querySelector(selector);
 const $A = (selector, parent = document) => parent?.querySelectorAll(selector);
 
+function toFilteredUTFText(s) {
+  if (!s) return s
+  return s.normalize('NFC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029]/g, '');
+  // \u200D - kept for unicode character joining
+  // \u0000-\u001F (C0), \u007F-\u009F (C1)
+  // \u2028 - line sep, \u2029 - par sep.
+  // \u0000-\u001F ... kept unsolved because of browser loading stooped due to this!
+}
+
 function newUID(length = 8) {
   var str = '';
 
@@ -203,7 +212,12 @@ var _Storage = (() => {
     if (!storagesC.has(key))
       return null;
 
-    return await storagesC.get(key).search(filePath, format);
+    let reply = await storagesC.get(key).search(filePath, format);
+
+    if (format == STOF_TEXT)
+      reply = toFilteredUTFText(reply);
+    
+    return reply;
   }
 
   async function getSubdirs(key, parentPath) {
@@ -387,7 +401,7 @@ async function main(baseDataStream = null) {
   } else {
     st = await _Storage.add(STO_DATA, `${DATA_FILE_PATH_BASE}.zip`, baseDataStream);
   }
-  const srcT = await _Storage.search(STO_DATA, 'appmainRun.js');
+  const srcT = await _Storage.search(STO_DATA, 'base/appmainRun.js');
   appendJavaScript(id_JSAppRun, srcT, document.body);
   runApp();
 }
