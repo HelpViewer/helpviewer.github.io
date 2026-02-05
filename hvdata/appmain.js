@@ -373,12 +373,7 @@ class StorageDir extends IStorage {
   }
 
   async fetchDataOrEmpty(url) {
-    try {
-      const response = await fetchData(url);
-      return response;
-    } catch (error) {
-      return new ArrayBuffer(0);
-    }
+    return fetchDataOrZero(url);
   }
 
   async searchImage(filePath) {
@@ -414,6 +409,15 @@ async function fetchData(url) {
     return arrayBuffer;
   } catch (error) {
     throw error;
+  }
+}
+
+async function fetchDataOrZero(url) {
+  try {
+    const response = await fetchData(url);
+    return response;
+  } catch (error) {
+    return new ArrayBuffer(0);
   }
 }
 
