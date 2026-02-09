@@ -6,4 +6,5 @@ Allow: /hlp/
 Allow: /index.html
 Allow: /sitemap.xml
 Allow: /favicon.png
-Allow: /faviconPWA.pngSitemap: https://helpviewer.github.io/s/sitemap.xml
+Allow: /faviconPWA.png
+Sitemap: https://helpviewer.github.io/s/sitemap.xml
