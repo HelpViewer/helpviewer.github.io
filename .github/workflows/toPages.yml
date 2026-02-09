@@ -115,7 +115,8 @@ jobs:
                  -H "Authorization: token $GITHUB_TOKEN" \
                  "$url" -o "$hlpdir/$name"
           done
-
+          
+          echo "" >> robots.txt
           echo "Sitemap: https://helpviewer.github.io/s/sitemap.xml" >> robots.txt
 
     - name: Commit and push changes
