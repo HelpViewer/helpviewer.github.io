@@ -1,5 +1,5 @@
-const CACHE_NAME = 'helpviewer-cache-20260209';
-const CACHE_FILES = [ '/faviconPWA.png','/LICENSE','/index.html','/manifest.webmanifest','/favicon.png','/robots.txt','/hvdata/index.html','/hvdata/data.zip','/hvdata/jszip.min.js','/hvdata/LICENSE-jszip.md','/hvdata/appmain.js' ];
+const CACHE_NAME = 'helpviewer-cache-20260216';
+const CACHE_FILES = [ '/favicon.png','/index.html','/manifest.webmanifest','/LICENSE','/hvdata/data.zip','/hvdata/index.html','/hvdata/jszip.min.js','/hvdata/LICENSE-jszip.md','/hvdata/appmain.js','/faviconPWA.png','/robots.txt' ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
