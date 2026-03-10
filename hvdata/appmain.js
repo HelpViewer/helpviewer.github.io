@@ -9,11 +9,20 @@ const $A = (selector, parent = document) => parent?.querySelectorAll(selector);
 
 function toFilteredUTFText(s) {
   if (!s) return s
-  return s.normalize('NFC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029]/g, '');
+  return safeFilteredText(s.normalize('NFC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029]/g, ''));
   // \u200D - kept for unicode character joining
   // \u0000-\u001F (C0), \u007F-\u009F (C1)
   // \u2028 - line sep, \u2029 - par sep.
   // \u0000-\u001F ... kept unsolved because of browser loading stooped due to this!
+}
+
+function safeFilteredText(s) {
+  if (!s) return s;
+  return s.split('').filter((c, i) => {
+      const code = c.charCodeAt(0);
+      return code >= 32 || [9,10,13].includes(code);
+    })
+    .join('');
 }
 
 function newUID(length = 8) {
