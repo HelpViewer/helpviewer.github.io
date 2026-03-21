@@ -9,20 +9,29 @@ const $A = (selector, parent = document) => parent?.querySelectorAll(selector);
 
 function toFilteredUTFText(s) {
   if (!s) return s
-  return safeFilteredText(s.normalize('NFC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029]/g, ''));
+  return safeFilteredText(s.normalize('NFKC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029\uFE00–\uFE0D\u202A-\u202E\u2066-\u2069\u00AD\u034F\u180E\u202F\u0080-\u009F\u115F\u1160\u17B4\uFDD0-\uFDEF\u0300-\u036F]/g, ''));
   // \u200D - kept for unicode character joining
   // \u0000-\u001F (C0), \u007F-\u009F (C1)
   // \u2028 - line sep, \u2029 - par sep.
   // \u0000-\u001F ... kept unsolved because of browser loading stooped due to this!
+  // \uFE00–\uFE0F - think about this - fall unicode icons to no color forms, but improves security
 }
 
 function safeFilteredText(s) {
   if (!s) return s;
-  return s.split('').filter((c, i) => {
-      const code = c.charCodeAt(0);
-      return code >= 32 || [9,10,13].includes(code);
-    })
-    .join('');
+  let out = '';
+  for (const ch of s) {
+    const cp = ch.codePointAt(0);
+
+    // skip: SMP variation selectors
+    if (cp >= 0xE0100 && cp <= 0xE01EF) continue;
+
+    // keep: TAB (9), LF (10), CR (13), 32 and higher
+    if (cp >= 32 || cp === 9 || cp === 10 || cp === 13) {
+      out += ch;
+    }
+  }
+  return out;
 }
 
 function newUID(length = 8) {
@@ -240,7 +249,9 @@ var _Storage = (() => {
     if (!storagesC.has(key))
       return null;
 
-    return await storagesC.get(key).searchImage(filePath);
+    let rawData = await storagesC.get(key).searchImage(filePath);
+    rawData = await doSteganographyCorrectionForImage(rawData || filePath);
+    return rawData;
   }
 
   function getKey(key) {
@@ -259,6 +270,56 @@ var _Storage = (() => {
   };
 })();
 
+async function doSteganographyCorrectionForImage(data) {
+  const img = new Image();
+  if (data.startsWith('data:image/'))
+    img.src = data;
+  else {
+    const response = await fetchDataOrZero(data);
+    if (response.byteLength == 0)
+      return null;
+
+    const content = btoa(String.fromCharCode(...new Uint8Array(response)));
+    img.src = `data:image/${data.split('.').pop().toLowerCase()};base64,${content}`;
+  }
+
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+  });
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (canvas.width > 16 || canvas.height > 16) {
+    // exception : prevent blur of edges and lines in image
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width = Math.ceil(img.width * 1.005);
+    tempCanvas.height = Math.ceil(img.height * 1.005);
+    tempCtx.drawImage(img, 0, 0, tempCanvas.width, tempCanvas.height);
+    ctx.drawImage(tempCanvas, 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.drawImage(img, 0, 0);
+  }
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const pixels = imageData.data;
+  for (let i = 0; i < pixels.length; i += 4) {
+    pixels[i] = (pixels[i] & ~1) | (Math.random() < 0.5 ? 1 : 0);
+    pixels[i+1] = (pixels[i+1] & ~1) | (Math.random() < 0.5 ? 1 : 0);
+    pixels[i+2] = (pixels[i+2] & ~1) | (Math.random() < 0.5 ? 1 : 0);
+    pixels[i+3] = (pixels[i+3] & ~1) | (Math.random() < 0.5 ? 1 : 0);
+  }
+  ctx.putImageData(imageData, 0, 0);
+
+  const canvasReply = canvas.toDataURL('image/png');
+  return canvasReply;
+}
+
 /**
  * @interface
  */
@@ -270,24 +331,43 @@ class IStorage {
 }
 
 class StorageZip extends IStorage {
+  #storageO;
+
   constructor() {
     super();
-    this.storageO = null;
+    this.#storageO = null;
   }
   
   async init(path) {
-    this.storageO = await ZIPHelpers.loadZipFromUrl(path);
+    this.#storageO = await ZIPHelpers.loadZipFromUrl(path);
+    let hasSlip = false;
+    const paths = Object.keys(this.#storageO.files);
+    for (const path of paths) {
+      if (path.includes('..')) {
+        delete this.#storageO.files[path];
+        hasSlip = true;
+        log('E Zip Slip:', path);
+      }
+    }
+    if (hasSlip) {
+      const msg = `Invalid paths found in given archive <b>${path}</b>. Loading stopped for ensuring security.`;
+      log(`E ${msg}`);
+      let pane = $O('#cors-error') || $O('#content') || document.body;
+      pane.innerHTML = `⚠ ${msg}`;
+      throw new Error(msg);
+    }
+    Object.freeze(this.#storageO.files);
     return this;
   }
 
   async search(filePath, format = STOF_TEXT) {
-    return await ZIPHelpers.searchArchiveForFile(filePath, this.storageO, format);
+    return await ZIPHelpers.searchArchiveForFile(filePath, this.#storageO, format);
   }
 
   async getSubdirs(parentPath) {
     const subdirs = new Set();
 
-    this.storageO?.forEach((relativePath, file) => {
+    this.#storageO?.forEach((relativePath, file) => {
       if (relativePath.startsWith(parentPath) && relativePath !== parentPath) 
       {
         const subPath = relativePath.slice(parentPath.length);
