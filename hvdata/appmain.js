@@ -340,6 +340,7 @@ class StorageZip extends IStorage {
   
   async init(path) {
     this.#storageO = await ZIPHelpers.loadZipFromUrl(path);
+    this.storageO = this.#storageO;
     let hasSlip = false;
     const paths = Object.keys(this.#storageO.files);
     for (const path of paths) {
