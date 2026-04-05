@@ -338,8 +338,9 @@ class StorageZip extends IStorage {
     this.#storageO = null;
   }
   
-  async init(path) {
+  async init(path, freeze = true) {
     this.#storageO = await ZIPHelpers.loadZipFromUrl(path);
+    this.path = path;
     this.storageO = this.#storageO;
     let hasSlip = false;
     const paths = Object.keys(this.#storageO.files);
@@ -357,7 +358,8 @@ class StorageZip extends IStorage {
       pane.innerHTML = `⚠ ${msg}`;
       throw new Error(msg);
     }
-    Object.freeze(this.#storageO.files);
+    if (freeze)
+      Object.freeze(this.#storageO.files);
     return this;
   }
 
@@ -390,6 +392,12 @@ class StorageZip extends IStorage {
     if (!content) return null;
     var mimeType = 'image/' + filePath.split('.').pop().toLowerCase();
     return `data:${mimeType};base64,${content}`;
+  }
+
+  async getCopyForChanges() {
+    const reply = new StorageZip();
+    await reply.init(this.path, false);
+    return reply.#storageO;
   }
 }
 
