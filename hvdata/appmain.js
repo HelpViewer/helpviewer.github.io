@@ -9,12 +9,12 @@ const $A = (selector, parent = document) => parent?.querySelectorAll(selector);
 
 function toFilteredUTFText(s) {
   if (!s) return s
-  return safeFilteredText(s.normalize('NFKC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029\uFE00–\uFE0D\u202A-\u202E\u2066-\u2069\u00AD\u034F\u180E\u202F\u0080-\u009F\u115F\u1160\u17B4\uFDD0-\uFDEF\u0300-\u036F]/g, ''));
+  return safeFilteredText(s.normalize('NFKC').replace(/[\u200B-\u200C\u200E-\u200F\uFEFF\u2060-\u206F\uE000-\uF8FF\u007F-\u009F\u2028\u2029\uFE00-\uFE0D\u202A-\u202E\u2066-\u2069\u00AD\u034F\u180E\u202F\u0080-\u009F\u115F\u1160\u17B4\uFDD0-\uFDEF\u0300-\u036F\u1AB0-\u1AFF\u1DC0-\u1DFF\u20D0-\u20FF\uFE20-\uFE2F]/g, ''));
   // \u200D - kept for unicode character joining
   // \u0000-\u001F (C0), \u007F-\u009F (C1)
   // \u2028 - line sep, \u2029 - par sep.
   // \u0000-\u001F ... kept unsolved because of browser loading stooped due to this!
-  // \uFE00–\uFE0F - think about this - fall unicode icons to no color forms, but improves security
+  // \uFE00-\uFE0F - think about this - fall unicode icons to no color forms, but improves security
 }
 
 function safeFilteredText(s) {
