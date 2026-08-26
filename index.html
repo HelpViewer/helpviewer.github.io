@@ -8,14 +8,17 @@
   <meta name="description" content="Help Viewer help file.">
   <meta name="referrer" content="origin">
   <meta http-equiv="Content-Security-Policy" content="
-default-src 'self' 'unsafe-inline';
-connect-src http: https: file:;
-img-src data: blob: https: http:;
+default-src 'none';
+script-src 'self' 'unsafe-inline';
+style-src 'self' 'unsafe-inline';
+connect-src 'self' http: https: file:;
+img-src 'self' data: blob: https: http:;
 font-src 'self' data:;
 base-uri 'none';
 frame-ancestors 'none';
 form-action 'self';
 object-src 'none';
+manifest-src 'self' file:;
 ">
   <link rel="manifest" href="manifest.webmanifest">
   <script src="hvdata/jszip.min.js"></script>
