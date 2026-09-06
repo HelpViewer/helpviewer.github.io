@@ -3,7 +3,7 @@ Last Updated: 2026-09-06
 
 # 🌐 HelpViewer
 
-is a modern, portable and fast tool for viewing Markdown and HTML documentation directly from ZIP archives or from a local directory where they have been unpack
+> is a modern, portable and fast tool for viewing Markdown and HTML documentation directly from ZIP archives or from a local directory where they have been unpack
 
 ## Directives
 User-agent: *
