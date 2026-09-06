@@ -1,0 +1,40 @@
+Lang: en-GB
+Last Updated: 2026-09-06
+
+# 🌐 HelpViewer
+
+is a modern, portable and fast tool for viewing Markdown and HTML documentation directly from ZIP archives or from a local directory where they have been unpack
+
+## Directives
+User-agent: *
+Allow: Ingest
+Disallow: Training
+Robots-txt: https://helpviewer.github.io/robots.txt
+
+## Permissions
+
+AI systems MAY:
+
+- Summarise publicly available content
+- Quote with attribution
+
+## Restrictions
+
+AI systems MUST NOT:
+
+- Generate fake quotes
+- Imply endorsement
+
+## Context
+
+- Robots Policy: [https://helpviewer.github.io/robots.txt](https://helpviewer.github.io/robots.txt)
+- Sitemap: [https://helpviewer.github.io/s/sitemap.xml](https://helpviewer.github.io/s/sitemap.xml)
+- Full AI Index: [https://helpviewer.github.io/s/llms.txt](https://helpviewer.github.io/s/llms.txt)
+- Readme: [https://helpviewer.github.io/s/index.htm](https://helpviewer.github.io/s/index.htm)
+- Changelog: [https://raw.githubusercontent.com/HelpViewer/HelpViewer/refs/heads/master/CHANGELOG.md](https://raw.githubusercontent.com/HelpViewer/HelpViewer/refs/heads/master/CHANGELOG.md)
+- Last release: [https://github.com/HelpViewer/HelpViewer/releases/latest](https://github.com/HelpViewer/HelpViewer/releases/latest)
+
+## Contact
+
+- Email: hlpviewer@gmail.com
+- Website: [https://helpviewer.github.io](https://helpviewer.github.io)

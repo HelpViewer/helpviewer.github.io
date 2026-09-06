@@ -1,0 +1,12 @@
+# 🌐HelpViewer
+
+is a modern, portable and fast tool for viewing Markdown and HTML documentation directly from ZIP archives or from a local directory where they have been unpack
+
+- [🌐HelpViewer](https://helpviewer.github.io/s/README.htm): is a modern, portable and fast tool for viewing Markdown and HTML documentation directly from ZIP archives or from a local directory where they have been unpack
+- [Table of Contents](https://helpviewer.github.io/s/toc.htm): 🌐 HelpViewer ⚙️ Features 💡 Implementation ◉ Working modes 🔧 Troubleshooting 🐳 Container images 🚀 Deployment package 🔗 GitHub 📖 User quick guide 👀 View y
+- [⚙️Features](https://helpviewer.github.io/s/features.htm): 📚 HelpViewer 🔒 Your data stays with you - the application runs entirely in JavaScript in your browser, and no files are sent to any server. 📦 No installation
+- [💡 Possible implementation](https://helpviewer.github.io/s/ideas.htm): Help system Knowledge base system Interactive documentation Study material or syllabus Electronic book Classic slide presentation Offline product presentation o
+- [◉ Working modes](https://helpviewer.github.io/s/workmode.htm): Locally as a help viewer: .../index.html?d=directory/ .../index.html?d=../help-file.zip .../index.html?d=https://github.com/HelpViewer/helpUser/releases/downloa
+- [🔧Troubleshooting](https://helpviewer.github.io/s/trouble.htm): Only a blank page is displayed It is probably because of CORS restrictions.
+- [🐳Container images](https://helpviewer.github.io/s/docker.htm): Download You need to download image from GHCR by one of these commands:docker pull ghcr.io/helpviewer/helpviewer:latest podman pull ghcr.io/helpviewer/helpviewe
+- [CORS policy](https://helpviewer.github.io/s/corsPolicy.htm): Do you see the page with “⚠ Do you see this message only?”? Then the browser is not loading the data from the ZIP help file.This may be caused by your browser b

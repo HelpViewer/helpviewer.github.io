@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<url><loc>https://helpviewer.github.io/s/README.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/toc.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/features.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/ideas.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/workmode.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/trouble.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/docker.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/_viewRepo.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/corsPolicy.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+<url><loc>https://helpviewer.github.io/s/index.htm</loc><lastmod>2026-03-21T21:52:04.947Z</lastmod></url>
+</urlset>
